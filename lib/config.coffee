@@ -15,7 +15,10 @@ class Configuration
     
     data = fs.readFileSync Configuration.filename, Configuration.encoding
     
-    @data = JSON.parse data
+    try
+      @data = JSON.parse data
+    catch e
+      #console.log "Invalid config. Did not load anything and started file from scratch."
       
   save: ->
     string = JSON.stringify @data
@@ -24,7 +27,7 @@ class Configuration
       if !!err
         throw err
         
-      console.log "Config saved."
+      #console.log "Config saved."
       
   get: (key) ->
     @data[key]
