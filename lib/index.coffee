@@ -1,6 +1,10 @@
 pkg = require '../package'
 program = require 'commander'
 ApiClient = require './apiClient'
+Configuration = require './config'
+
+config = new Configuration
+config.load()
 
 program
   .version(pkg.version)
@@ -12,7 +16,10 @@ program
   .option('-g --get [username]', 'Returns the given user.', false)
   .parse(process.argv)
   
-client = new ApiClient program.session
+if program.session
+  config.set 'session', program.session
+  
+client = new ApiClient config.get('session')
 
 if program.create
   username = program.create
@@ -23,6 +30,7 @@ if program.create
     if !!err
       throw err
     console.log username, "created and logged in."
+    config.set 'session', session
   
 else if program.login
   if !program.password
@@ -36,6 +44,7 @@ else if program.login
       if !!err
         throw err
       console.log "Logged in."
+      config.set 'session', session
 else if program.get
   username = program.get
 
