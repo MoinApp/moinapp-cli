@@ -8,6 +8,8 @@ class ApiClient
     getUser: '/user/:name'
   }
   @apiKey = 'ef19d485-4259-439e-933e-8c6caf8476f7'
+  @host = 'localhost'
+  @port = 3000
   
   constructor: (@session) ->
     # may set session
@@ -23,8 +25,8 @@ class ApiClient
       path += '&session=' + @session
     
     http.request {
-      hostname: 'localhost',
-      port: 3000,
+      hostname: ApiClient.host,
+      port: ApiClient.port,
       path: path,
       method: method,
       headers: {
