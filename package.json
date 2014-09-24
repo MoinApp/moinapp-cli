@@ -10,5 +10,13 @@
     "moin"
   ],
   "author": "Sören Gade",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "coffee-script": "^1.8.0",
+    "commander": "^2.3.0"
+  },
+  "preferGlobal": "true",
+  "bin": {
+    "moin": "bin/index.js"
+  }
 }
