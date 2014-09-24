@@ -14,6 +14,7 @@ program
   .option('-p --password [password]', 'Enter password for username. Requires -l option.', false)
   .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
   .option('-g --get [username]', 'Returns the given user.', false)
+  .option('--config [key:value]', 'Sets the config key with the given value.', null)
   .parse(process.argv)
   
 if program.session
@@ -55,5 +56,19 @@ else if program.args.length > 0
   
   client.moinUsername moinUsername, (err, data) ->
     console.log "Moin sent:", data
+    
+else if program.config
+  
+  configs = program.config.split ':'
+  if configs.length != 2
+    program.help()
+  else
+    
+    key = configs[0]
+    value = configs[1]
+    
+    console.log 'Writing config key "' + key + '" as "' + value + '".'
+    config.set key, value
+  
 else
   program.help()
