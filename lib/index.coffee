@@ -20,6 +20,9 @@ program
 if program.session
   config.set 'session', program.session
   
+serverError = (err) ->
+  console.log "Server sent error:", err
+  
 client = new ApiClient config.get('session')
 
 if program.create
@@ -29,7 +32,7 @@ if program.create
   
   client.createNewUser username, password, email, (err, username) ->
     if !!err
-      throw err
+      return serverError err
     console.log username, "created and logged in."
     config.set 'session', session
   
@@ -43,18 +46,22 @@ else if program.login
     console.log "Login for user " + username + "..."
     client.login username, password, (err, session) ->
       if !!err
-        throw err
+        return serverError err
       console.log "Logged in."
       config.set 'session', session
 else if program.get
   username = program.get
 
   client.getUser username, (err, user) ->
+    if !!err
+      return serverError err
     console.log 'User "' + username + '": ' + user
 else if program.args.length > 0
   moinUsername = program.args[0]
   
   client.moinUsername moinUsername, (err, data) ->
+    if !!err
+      return serverError err
     console.log "Moin sent:", data
     
 else if program.config

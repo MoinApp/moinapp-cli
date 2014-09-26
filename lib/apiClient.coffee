@@ -31,16 +31,22 @@ class ApiClient
       path: path,
       method: method,
       headers: {
+        'User-Agent': 'moinapp-cli'
         'Content-Type': 'application/json'
       }
     }, callback
     
   getJSONRequest: (method, path, callback) ->
     @createRequest method, path, (res) ->
+      res.setEncoding 'utf8'
+      
       res.on 'data', (buffer) ->
         json = JSON.parse buffer.toString()
-        # console.log json
-        callback json
+        
+        if res.statusCode == 200
+          callback null, json
+        else
+          callback new Error json
     
   writeJSONRequest: (method, path, json, callback) ->
     req = @getJSONRequest method, path, callback
@@ -55,12 +61,12 @@ class ApiClient
       password: password
     }
     
-    @writeJSONRequest 'POST', ApiClient.paths.login, credentials, (json) ->
-      if json.code == "Success"
+    @writeJSONRequest 'POST', ApiClient.paths.login, credentials, (err, json) ->
+      if !!err || json.code != "Success"
+        callback new Error err || json.code
+      else
         @session = json.session
         callback null, @session
-      else
-        callback new Error json.code
     .end()
     
   createNewUser: (username, password, email, callback) ->
@@ -70,19 +76,21 @@ class ApiClient
       email: email
     }
     
-    @writeJSONRequest 'POST', ApiClient.paths.newUser, user, (json) ->
-      if json.code == "Success"
+    @writeJSONRequest 'POST', ApiClient.paths.newUser, user, (err, json) ->
+      if !!err || json.code != "Success"
+        callback new Error err || json.code
+      else
         @session = json.session
         callback null, username
-      else
-        callback new Error json.code
     .end()
     
   getUser: (username, callback) ->
     path = ApiClient.paths.getUser.replace /:name/, username
     
-    @getJSONRequest 'GET', path, (json) ->
-      if json
+    @getJSONRequest 'GET', path, (err, json) ->
+      if !!err
+        callback new Error err || json.code
+      else
         callback null, json
     .end()
     
@@ -91,13 +99,16 @@ class ApiClient
       to: userId
     }
     
-    @writeJSONRequest 'POST', ApiClient.paths.moin, to, (json) ->
-      callback null, json
+    @writeJSONRequest 'POST', ApiClient.paths.moin, to, (err, json) ->
+      if !!err || json.code != 'Success'
+        callback new Error err || json.code
+      else
+        callback null, json
     .end()
   moinUsername: (username, callback) ->
     @getUser username, (err, user) =>
       if !!err
-        throw err
+        return callback err
       userId = user.id
       
       @moin userId, callback
