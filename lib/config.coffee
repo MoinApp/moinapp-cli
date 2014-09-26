@@ -4,8 +4,8 @@ class Configuration
   @filename = 'config.json'
   @encoding = 'utf8'
   @defaults = {
-    host: 'localhost'
-    port: 3000
+    host: 'moinapp.herokuapp.com'
+    port: 80
   }
   
   @_instance = null
