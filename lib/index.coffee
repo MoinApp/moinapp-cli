@@ -3,7 +3,7 @@ program = require 'commander'
 ApiClient = require './apiClient'
 Configuration = require './config'
 
-config = new Configuration
+config = Configuration.getConfiguration()
 config.load()
 
 program

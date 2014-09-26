@@ -3,10 +3,20 @@ fs = require 'fs'
 class Configuration
   @filename = 'config.json'
   @encoding = 'utf8'
+  @defaults = {
+    host: 'localhost'
+    port: 3000
+  }
+  
+  @_instance = null
+  @getConfiguration: ->
+    if not @_instance
+      @_instance = new Configuration
+    @_instance
+  
   
   constructor: (@data) ->
-    if !@data
-      @data = {}
+    
     
   load: ->
     exists = fs.existsSync Configuration.filename
@@ -19,6 +29,8 @@ class Configuration
       @data = JSON.parse data
     catch e
       #console.log "Invalid config. Did not load anything and started file from scratch."
+      @data = Configuration.defaults
+      @save()
       
   save: ->
     string = JSON.stringify @data

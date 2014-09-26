@@ -1,4 +1,5 @@
 http = require 'http'
+Configuration = require './config'
 
 class ApiClient
   @paths = {
@@ -8,8 +9,6 @@ class ApiClient
     getUser: '/user/:name'
   }
   @apiKey = 'ef19d485-4259-439e-933e-8c6caf8476f7'
-  @host = 'localhost'
-  @port = 3000
   
   constructor: (@session) ->
     # may set session
@@ -23,10 +22,12 @@ class ApiClient
     path += '?api_key=' + ApiClient.apiKey
     if @session
       path += '&session=' + @session
+      
+    config = Configuration.getConfiguration()
     
     http.request {
-      hostname: ApiClient.host,
-      port: ApiClient.port,
+      hostname: config.get('host'),
+      port: config.get('port'),
       path: path,
       method: method,
       headers: {
