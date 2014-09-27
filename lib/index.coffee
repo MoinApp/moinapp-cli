@@ -11,6 +11,7 @@ program
   .option('-s --session [session]', 'Session token.', false)
   .option('-l --login [username]', 'Login. Requires username and password', false)
   .option('-c --create [username]', 'Create a new user. Requires username, password and email.', false)
+  .usage('[options] username')
   .option('-p --password [password]', 'Enter password for username. Requires -l option.', false)
   .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
   .option('-g --get [username]', 'Returns the given user.', false)
