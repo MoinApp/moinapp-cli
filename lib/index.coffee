@@ -57,16 +57,16 @@ class MoinCLI
     if not username or not password or not email
       return console.log "You need to specify username, password and email!"
     
-    @client.createNewUser username, password, email, =>
-      @loginSuccessHandler
+    @client.createNewUser username, password, email, (err, session) =>
+      @loginSuccessHandler err, session
       
   login: (username, password) ->
     if not username or not password
       return console.log "You need to specify username and password!"
     
     console.log "Logging in with username \"#{username}\"..."
-    client.login username, password, =>
-      @loginSuccessHandler
+    @client.login username, password, (err, session) =>
+      @loginSuccessHandler err, session
       
   loginSuccessHandler: (err, session) ->
     if !!err

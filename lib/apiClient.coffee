@@ -61,7 +61,7 @@ class ApiClient
       password: password
     }
     
-    @writeJSONRequest 'POST', ApiClient.paths.login, credentials, (err, json) ->
+    @writeJSONRequest 'POST', ApiClient.paths.login, credentials, (err, json) =>
       if !!err || json.code != "Success"
         callback err || new Error json.code
       else
