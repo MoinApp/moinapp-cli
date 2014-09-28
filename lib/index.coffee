@@ -72,7 +72,7 @@ class MoinCLI
     if !!err
       return @apiError err
     
-    @config.set 'session', sessionToken
+    @config.set 'session', session
     console.log "Logged in."
     
   getUser: (username) ->
