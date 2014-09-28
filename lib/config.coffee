@@ -10,12 +10,12 @@ class Configuration
   
   @_instance = null
   @getConfiguration: ->
-    if not @_instance
-      @_instance = new Configuration
-    @_instance
+    if not Configuration._instance
+      Configuration._instance = new Configuration
+    Configuration._instance
   
   
-  constructor: (@data) ->
+  constructor: (@data = {}) ->
     
     
   load: ->

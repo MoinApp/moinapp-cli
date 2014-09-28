@@ -3,80 +3,94 @@ program = require 'commander'
 ApiClient = require './apiClient'
 Configuration = require './config'
 
-config = Configuration.getConfiguration()
-config.load()
-
-program
-  .version(pkg.version)
-  .option('-s --session [session]', 'Session token.', false)
-  .option('-l --login [username]', 'Login. Requires username and password', false)
-  .option('-c --create [username]', 'Create a new user. Requires username, password and email.', false)
-  .usage('[options] username')
-  .option('-p --password [password]', 'Enter password for username. Requires -l option.', false)
-  .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
-  .option('-g --get [username]', 'Returns the given user.', false)
-  .option('--config [key:value]', 'Sets the config key with the given value.', null)
-  .parse(process.argv)
+class MoinCLI
+  config: null
+  client: null
   
-if program.session
-  config.set 'session', program.session
-  
-serverError = (err) ->
-  console.log "Server sent error:", err
-  
-client = new ApiClient config.get('session')
-
-if program.create
-  username = program.create
-  password = program.password
-  email = program.email
-  
-  client.createNewUser username, password, email, (err, username) ->
-    if !!err
-      return serverError err
-    console.log username, "created and logged in."
-    config.set 'session', session
-  
-else if program.login
-  if !program.password
-    console.log "You need to specify username and password if you want to login."
-  else
-    username = program.login
-    password = program.password
+  constructor: () ->
     
-    console.log "Login for user " + username + "..."
-    client.login username, password, (err, session) ->
+    
+  main: ->
+    @config = Configuration.getConfiguration()
+    @registerCLIApp()
+    
+    @client = new ApiClient @config.get('session')
+    @parse()
+    
+  registerCLIApp: ->
+    program
+      .version(pkg.version)
+      .option('-s --session [session]', 'Session token.', false)
+      .option('-l --login [username]', 'Login. Requires username and password', false)
+      .option('-c --create [username]', 'Create a new user. Requires username, password and email.', false)
+      .usage('[options] username')
+      .option('-p --password [password]', 'Enter password for username. Requires -l option.', false)
+      .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
+      .option('-g --get [username]', 'Returns the given user.', false)
+      .option('--config [key:value]', 'Sets the config key with the given value.', null)
+      .parse(process.argv)
+      
+  apiError: (error) ->
+    console.log "Error communicating with server:", error
+      
+  parse: ->
+    if !!program.session
+      @config.set 'session', program.session
+      
+    if program.create
+      @createAccount program.create, program.password, program.email
+    else if program.login
+      @login program.login, program.password
+    else if program.get
+      @getUser program.get
+    else if program.config
+      key = program.config.split(':')[0]
+      value = program.config.split(':')[1]
+      
+      @setConfig key, value
+    else if program.args.length > 0
+      @moinUser program.args[0]
+    else
+      program.help()
+      
+  createAccount: (username, password, email) ->
+    if not username or not password or not email
+      return console.log "You need to specify username, password and email!"
+    
+    @client.createNewUser username, password, email, @loginSuccessHandler
+      
+  login: (username, password) ->
+    if not username or not password
+      return console.log "You need to specify username and password!"
+    
+    console.log "Logging in with username \"#{username}\"..."
+    client.login username, password, @loginSuccessHandler
+      
+  loginSuccessHandler: (err, session) ->
+    if !!err
+      return @apiError err
+    
+    @config.set 'session', sessionToken
+    console.log "Logged in."
+    
+  getUser: (username) ->
+    @client.getUser username, (err, user) ->
       if !!err
-        return serverError err
-      console.log "Logged in."
-      config.set 'session', session
-else if program.get
-  username = program.get
-
-  client.getUser username, (err, user) ->
-    if !!err
-      return serverError err
-    console.log 'User "' + username + '": ' + user
-else if program.args.length > 0
-  moinUsername = program.args[0]
-  
-  client.moinUsername moinUsername, (err, data) ->
-    if !!err
-      return serverError err
-    console.log "Moin sent:", data
-    
-else if program.config
-  
-  configs = program.config.split ':'
-  if configs.length != 2
-    program.help()
-  else
-    
-    key = configs[0]
-    value = configs[1]
-    
+        return @apiError err
+      console.log "[USER]", user
+      
+  moinUser: (username) ->
+    @client.moinUsername username, (err, data) ->
+      if !!err
+        return @apiError err
+      console.log "Moin sent.", data
+      
+  setConfig: (key, value) ->
     console.log 'Writing config key "' + key + '" as "' + value + '".'
     config.set key, value
-  
-else
-  program.help()
+
+main = ->
+  app = new MoinCLI
+  app.main()
+module.exports = ->
+  main()

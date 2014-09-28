@@ -81,7 +81,7 @@ class ApiClient
         callback new Error err || json.code
       else
         @session = json.session
-        callback null, username
+        callback null, @session
     .end()
     
   getUser: (username, callback) ->
