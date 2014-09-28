@@ -9,6 +9,10 @@
   "keywords": [
     "moin"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MoinApp/moinapp-cli.git"
+  },
   "author": "Sören Gade",
   "license": "MIT",
   "dependencies": {
