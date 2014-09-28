@@ -12,16 +12,20 @@ class Configuration
   @getConfiguration: ->
     if not Configuration._instance
       Configuration._instance = new Configuration
+      Configuration._instance.load()
     Configuration._instance
   
   
   constructor: (@data = {}) ->
     
+  loadDefault: ->
+    @data = Configuration.defaults
+    @save()
     
   load: ->
     exists = fs.existsSync Configuration.filename
     if !exists
-      return
+      return @loadDefault()
     
     data = fs.readFileSync Configuration.filename, Configuration.encoding
     
@@ -29,8 +33,7 @@ class Configuration
       @data = JSON.parse data
     catch e
       #console.log "Invalid config. Did not load anything and started file from scratch."
-      @data = Configuration.defaults
-      @save()
+      @loadDefault()
       
   save: ->
     string = JSON.stringify @data
