@@ -46,7 +46,7 @@ class ApiClient
         if res.statusCode == 200
           callback null, json
         else
-          callback new Error json
+          callback new Error json.code + ": " + json.message
     
   writeJSONRequest: (method, path, json, callback) ->
     req = @getJSONRequest method, path, callback
@@ -63,7 +63,7 @@ class ApiClient
     
     @writeJSONRequest 'POST', ApiClient.paths.login, credentials, (err, json) ->
       if !!err || json.code != "Success"
-        callback new Error err || json.code
+        callback err || new Error json.code
       else
         @session = json.session
         callback null, @session
@@ -78,7 +78,7 @@ class ApiClient
     
     @writeJSONRequest 'POST', ApiClient.paths.newUser, user, (err, json) ->
       if !!err || json.code != "Success"
-        callback new Error err || json.code
+        callback err || new Error json.code
       else
         @session = json.session
         callback null, @session
@@ -89,7 +89,7 @@ class ApiClient
     
     @getJSONRequest 'GET', path, (err, json) ->
       if !!err
-        callback new Error err || json.code
+        callback err || new Error json.code
       else
         callback null, json
     .end()
@@ -101,7 +101,7 @@ class ApiClient
     
     @writeJSONRequest 'POST', ApiClient.paths.moin, to, (err, json) ->
       if !!err || json.code != 'Success'
-        callback new Error err || json.code
+        callback err || new Error json.code
       else
         callback null, json
     .end()
