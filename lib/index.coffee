@@ -89,7 +89,7 @@ class MoinCLI
       
   setConfig: (key, value) ->
     console.log 'Writing config key "' + key + '" as "' + value + '".'
-    config.set key, value
+    @config.set key, value
 
 main = ->
   app = new MoinCLI
