@@ -50,4 +50,4 @@ class Configuration
     @data[key] = value
     @save()
 
-module.exports = Configuration
+module.exports.Configuration = Configuration

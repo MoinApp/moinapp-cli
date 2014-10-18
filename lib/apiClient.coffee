@@ -1,116 +1,100 @@
-http = require 'http'
-Configuration = require './config'
+url = require 'url'
+restify = require 'restify'
+{ Configuration } = require './config'
 
-class ApiClient
-  @paths = {
-    moin: '/moin'
-    newUser: '/user'
-    login: '/user/session',
-    getUser: '/user/:name'
+class APIClient
+  @apiPaths = {
+    login: '/api/auth',
+    newUser: '/api/signup',
+    getUser: '/api/user/:username',
+    moin: '/api/moin'
   }
-  @apiKey = 'ef19d485-4259-439e-933e-8c6caf8476f7'
+  @appID = "moinapp-cli"
   
-  constructor: (@session) ->
-    # may set session
+  constructor: ->
+    @config = Configuration.getConfiguration()
+    @session = @config.get 'session'
     
-  setSession: (sessionToken) ->
-    @session = sessionToken
-  
-  createRequest: (method, path, callback) ->
-    console.log method, path
-    
-    path += '?api_key=' + ApiClient.apiKey
-    if @session
-      path += '&session=' + @session
-      
-    config = Configuration.getConfiguration()
-    
-    http.request {
-      hostname: config.get('host'),
-      port: config.get('port'),
-      path: path,
-      method: method,
-      headers: {
-        'User-Agent': 'moinapp-cli'
-        'Content-Type': 'application/json'
-      }
-    }, callback
-    
-  getJSONRequest: (method, path, callback) ->
-    @createRequest method, path, (res) ->
-      res.setEncoding 'utf8'
-      
-      res.on 'data', (buffer) ->
-        json = JSON.parse buffer.toString()
-        
-        if res.statusCode == 200
-          callback null, json
-        else
-          callback new Error json.code + ": " + json.message
-    
-  writeJSONRequest: (method, path, json, callback) ->
-    req = @getJSONRequest method, path, callback
-    
-    req.write JSON.stringify json
-    
-    req
-    
-  login: (username, password, callback) ->
-    credentials = {
-      username: username,
-      password: password
+    uri = url.format {
+      protocol: 'http',
+      hostname: @config.get('host'),
+      port: @config.get('port')
+    }
+    @client = restify.createJsonClient {
+      url: uri,
+      version: "2.0.0",
+      userAgent: 'moinapp-cli'
     }
     
-    @writeJSONRequest 'POST', ApiClient.paths.login, credentials, (err, json) =>
-      if !!err || json.code != "Success"
-        callback err || new Error json.code
-      else
-        @session = json.session
-        callback null, @session
-    .end()
+  authenticatePath: (path) ->
+    if !!@session
+      urlObject = url.parse path, true, true
+      urlObject.query.session = @session
+      path = url.format urlObject
+      
+    return path
     
-  createNewUser: (username, password, email, callback) ->
-    user = {
+  doGET: (path, callback) ->
+    console.log "GET", path
+    path = @authenticatePath path
+    
+    @client.get path, (err, req, res, obj) =>
+      callback? err, obj
+      @client.close()
+
+  doPOST: (path, payload, callback) ->
+    console.log "POST", path, payload
+    path = @authenticatePath path
+    
+    @client.post path, payload, (err, req, res, obj) =>
+      callback? err, obj
+      @client.close()
+      
+  # Operation functions
+  _parseLoginResponse: (response) ->
+    if response.code == "Success"
+      @session = response.message
+      @config.set 'session', @session
+  
+  login: (username, password, callback) ->
+    payload = {
       username: username,
       password: password,
-      email: email
+      application: APIClient.appID
     }
     
-    @writeJSONRequest 'POST', ApiClient.paths.newUser, user, (err, json) ->
-      if !!err || json.code != "Success"
-        callback err || new Error json.code
-      else
-        @session = json.session
-        callback null, @session
-    .end()
-    
-  getUser: (username, callback) ->
-    path = ApiClient.paths.getUser.replace /:name/, username
-    
-    @getJSONRequest 'GET', path, (err, json) ->
-      if !!err
-        callback err || new Error json.code
-      else
-        callback null, json
-    .end()
-    
-  moin: (userId, callback) ->
-    to = {
-      to: userId
-    }
-    
-    @writeJSONRequest 'POST', ApiClient.paths.moin, to, (err, json) ->
-      if !!err || json.code != 'Success'
-        callback err || new Error json.code
-      else
-        callback null, json
-    .end()
-  moinUsername: (username, callback) ->
-    @getUser username, (err, user) =>
-      if !!err
-        return callback err
-      userId = user.id
+    @doPOST APIClient.apiPaths.login, payload, (err, response) =>
+      return callback err, response if !!err
       
-      @moin userId, callback
+      @_parseLoginResponse response
+      
+      callback err, @session
+      
+  createNewUser: (username, password, email, callback) ->
+    payload = {
+      username: username,
+      password: password,
+      email: email,
+      application: APIClient.appID
+    }
+    
+    @doPOST APIClient.apiPaths.newUser, payload, (err, response) =>
+      return callback err, response if !!err
+      
+      @_parseLoginResponse response
+      
+      callback err, @session
+      
+  getUser: (username, callback) ->
+    path = APIClient.apiPaths.getUser.replace /:username/, username
+    
+    @doGET path, callback
+      
+  moinUsername: (username, callback) ->
+    payload = {
+      username: username
+    }
+    
+    @doPOST APIClient.apiPaths.moin, payload, callback
 
-module.exports = ApiClient
+module.exports.APIClient = APIClient

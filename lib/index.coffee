@@ -1,7 +1,7 @@
 pkg = require '../package'
 program = require 'commander'
-ApiClient = require './apiClient'
-Configuration = require './config'
+{ APIClient } = require './apiClient'
+{ Configuration } = require './config'
 
 class MoinCLI
   config: null
@@ -14,13 +14,12 @@ class MoinCLI
     @config = Configuration.getConfiguration()
     @registerCLIApp()
     
-    @client = new ApiClient @config.get('session')
+    @client = new APIClient
     @parse()
     
   registerCLIApp: ->
     program
       .version(pkg.version)
-      .option('-s --session [session]', 'Session token.', false)
       .option('-l --login [username]', 'Login. Requires username and password', false)
       .option('-c --create [username]', 'Create a new user. Requires username, password and email.', false)
       .usage('[options] username')
@@ -31,12 +30,12 @@ class MoinCLI
       .parse(process.argv)
       
   apiError: (error) ->
-    console.log "Error communicating with server:", error
+    formattedMessage = error
+    if !!error.restCode && !!error.message
+      formattedMessage = error.restCode + ": " + error.message
+    console.log "Error communicating with server.", formattedMessage
       
   parse: ->
-    if !!program.session
-      @config.set 'session', program.session
-      
     if program.create
       @createAccount program.create, program.password, program.email
     else if program.login
