@@ -88,7 +88,8 @@ class APIClient
   getUser: (username, callback) ->
     path = APIClient.apiPaths.getUser.replace /:username/, username
     
-    @doGET path, callback
+    @doGET path, (err, response) ->
+      callback? err, response.message
       
   moinUsername: (username, callback) ->
     payload = {
