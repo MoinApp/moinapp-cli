@@ -20,6 +20,7 @@
     "coffee-script": "^1.8.0",
     "commander": "^2.3.0",
     "prettyjson": "^1.0.0",
+    "read": "^1.0.5",
     "restify": "^2.8.3"
   },
   "preferGlobal": "true",

@@ -1,5 +1,6 @@
 pkg = require '../package'
 program = require 'commander'
+read = require 'read'
 { APIClient } = require './apiClient'
 { Configuration } = require './config'
 
@@ -23,7 +24,6 @@ class MoinCLI
       .option('-l --login [username]', 'Login. Requires username and password', false)
       .option('-c --create [username]', 'Create a new user. Requires username, password and email.', false)
       .usage('[options] username')
-      .option('-p --password [password]', 'Enter password for username. Requires -l option.', false)
       .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
       .option('-g --get [username]', 'Returns the given user.', false)
       .option('--set [key:value]', 'Sets the config key with the given value.', null)
@@ -38,9 +38,9 @@ class MoinCLI
       
   parse: ->
     if program.create
-      @createAccount program.create, program.password, program.email
+      @createAccount program.create, program.email
     else if program.login
-      @login program.login, program.password
+      @login program.login
     else if program.get
       @getUser program.get
     else if program.set
@@ -59,20 +59,26 @@ class MoinCLI
     else
       program.help()
       
-  createAccount: (username, password, email) ->
-    if not username or not password or not email
-      return console.log "You need to specify username, password and email!"
-    
-    @client.createNewUser username, password, email, (err, session) =>
-      @loginSuccessHandler err, session
+  createAccount: (username, email) ->
+    read { prompt: "Password: ", silent: true }, (err, password) =>
+      throw err if !!err
       
-  login: (username, password) ->
-    if not username or not password
-      return console.log "You need to specify username and password!"
+      if not username or not password or not email
+        return console.log "You need to specify username, password and email!"
     
-    console.log "Logging in with username \"#{username}\"..."
-    @client.login username, password, (err, session) =>
-      @loginSuccessHandler err, session
+      @client.createNewUser username, password, email, (err, session) =>
+        @loginSuccessHandler err, session
+      
+  login: (username) ->
+    read { prompt: "Password: ", silent: true }, (err, password) =>
+      throw err if !!err
+      
+      if not username or not password
+        return console.log "You need to specify username and password!"
+    
+      console.log "Logging in with username \"#{username}\"..."
+      @client.login username, password, (err, session) =>
+        @loginSuccessHandler err, session
       
   loginSuccessHandler: (err, session) ->
     if !!err
