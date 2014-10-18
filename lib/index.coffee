@@ -26,8 +26,8 @@ class MoinCLI
       .option('-p --password [password]', 'Enter password for username. Requires -l option.', false)
       .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
       .option('-g --get [username]', 'Returns the given user.', false)
+      .option('--set [key:value]', 'Sets the config key with the given value.', null)
       .option('--config', 'Shows the current configuration.')
-      .option('--config [key:value]', 'Sets the config key with the given value.', null)
       .parse(process.argv)
       
   apiError: (error) ->
@@ -43,14 +43,17 @@ class MoinCLI
       @login program.login, program.password
     else if program.get
       @getUser program.get
-    else if program.config
-      if !! ( typeof program.config == 'string' )
-        key = program.config.split(':')[0]
-        value = program.config.split(':')[1]
+    else if program.set
+      split = program.set.split ":"
+      if split.length >= 2
+        key = split[0]
+        value = split[1]
         
         @setConfig key, value
       else
-        @showConfig()
+        console.log 'Please specify "key:value".'
+    else if program.config
+      @showConfig()
     else if program.args.length > 0
       @moinUser program.args[0]
     else
