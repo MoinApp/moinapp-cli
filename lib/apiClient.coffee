@@ -33,9 +33,23 @@ class APIClient
       path = url.format urlObject
       
     return path
-    
+  logRequest: (method, path, payload = null) ->
+    # create a copy or else we are not going to pass those parameters to the server!
+    loggedPayload = {}
+    `for ( var attr in payload ) {
+      loggedPayload[attr] = payload[attr];
+    }`
+    if !!loggedPayload
+      # remove unwanted parameters from stdout!
+      if !!loggedPayload.password
+        delete loggedPayload.password
+      if !!loggedPayload.application
+        delete loggedPayload.application
+      
+    console.log method, path, loggedPayload
+  
   doGET: (path, callback) ->
-    console.log "GET", path
+    @logRequest "GET", path
     path = @authenticatePath path
     
     @client.get path, (err, req, res, obj) =>
@@ -43,7 +57,7 @@ class APIClient
       @client.close()
 
   doPOST: (path, payload, callback) ->
-    console.log "POST", path, payload
+    @logRequest "POST", path, payload
     path = @authenticatePath path
     
     @client.post path, payload, (err, req, res, obj) =>
