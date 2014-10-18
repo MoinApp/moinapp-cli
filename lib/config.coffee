@@ -17,17 +17,18 @@ class Configuration
   
   
   constructor: (@data = {}) ->
+    @filename = path.join path.dirname(require.main.filename), Configuration.filename
     
   loadDefault: ->
     @data = Configuration.defaults
     @save()
     
   load: ->
-    exists = fs.existsSync Configuration.filename
+    exists = fs.existsSync @filename
     if !exists
       return @loadDefault()
     
-    data = fs.readFileSync Configuration.filename, Configuration.encoding
+    data = fs.readFileSync @filename, Configuration.encoding
     
     try
       @data = JSON.parse data
@@ -38,7 +39,7 @@ class Configuration
   save: ->
     string = JSON.stringify @data
     
-    fs.writeFile Configuration.filename, string, (err) ->
+    fs.writeFile @filename, string, (err) ->
       if !!err
         throw err
         
