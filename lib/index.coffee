@@ -26,6 +26,7 @@ class MoinCLI
       .option('-p --password [password]', 'Enter password for username. Requires -l option.', false)
       .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
       .option('-g --get [username]', 'Returns the given user.', false)
+      .option('--config', 'Shows the current configuration.')
       .option('--config [key:value]', 'Sets the config key with the given value.', null)
       .parse(process.argv)
       
@@ -43,10 +44,13 @@ class MoinCLI
     else if program.get
       @getUser program.get
     else if program.config
-      key = program.config.split(':')[0]
-      value = program.config.split(':')[1]
-      
-      @setConfig key, value
+      if !! ( typeof program.config == 'string' )
+        key = program.config.split(':')[0]
+        value = program.config.split(':')[1]
+        
+        @setConfig key, value
+      else
+        @showConfig()
     else if program.args.length > 0
       @moinUser program.args[0]
     else
@@ -87,8 +91,10 @@ class MoinCLI
       console.log "Moin sent.", data
       
   setConfig: (key, value) ->
-    console.log 'Writing config key "' + key + '" as "' + value + '".'
+    console.log 'Writing value "' + value + '" for config key "' + key + '".'
     @config.set key, value
+  showConfig: ->
+    @config.print()
 
 main = ->
   app = new MoinCLI
