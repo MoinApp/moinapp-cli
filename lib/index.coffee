@@ -94,4 +94,6 @@ main = ->
   app = new MoinCLI
   app.main()
 module.exports = ->
-  main()
+  # reduce stack trace and also remove traces of js
+  setImmediate ->
+    main()
