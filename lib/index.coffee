@@ -21,64 +21,83 @@ class MoinCLI
   registerCLIApp: ->
     program
       .version(pkg.version)
-      .option('-l --login [username]', 'Login. Requires username and password', false)
-      .option('-c --create [username]', 'Create a new user. Requires username, password and email.', false)
-      .usage('[options] username')
-      .option('-e --email [email]', 'Enter email for new user. Required for -c option.', false)
-      .option('-g --get [username]', 'Returns the given user.', false)
-      .option('--set [key:value]', 'Sets the config key with the given value.', null)
-      .option('--config', 'Shows the current configuration.')
-      .parse(process.argv)
+    program
+      .command('login')
+        .description('Login and save the session token.')
+        .action( =>
+          @login()
+        )
+    program
+      .command('signup')
+        .description('Sign up for a new account and save the session token.')
+        .action( =>
+          @createAccount()
+        )
+    program
+      .command('get [username]')
+        .description('Retrives information about the given user.')
+        .action( (username) =>
+          @getUser username
+        )
+    program
+      .command('config-show')
+        .description('Shows the content of configuration file.')
+        .action( =>
+          @showConfig()
+        )
+    program
+      .command('config-set [key] [value]')
+        .description('Sets the specified value for the configuration key.')
+        .action( (key, value) =>
+          @setConfig key, value
+        )
+    program
+      .command('*')
+        .description('Send a moin to the user.')
+        .action( (username) =>
+          @moinUser username
+        )
+        
+  parse: ->
+    program.parse process.argv
+    if !program.args.length
+      program.help()
       
   apiError: (error) ->
     formattedMessage = error
     if !!error.restCode && !!error.message
       formattedMessage = error.restCode + ": " + error.message
     console.log "Error communicating with server.", formattedMessage
-      
-  parse: ->
-    if program.create
-      @createAccount program.create, program.email
-    else if program.login
-      @login program.login
-    else if program.get
-      @getUser program.get
-    else if program.set
-      split = program.set.split ":"
-      if split.length >= 2
-        key = split[0]
-        value = split[1]
-        
-        @setConfig key, value
-      else
-        console.log 'Please specify "key:value".'
-    else if program.config
-      @showConfig()
-    else if program.args.length > 0
-      @moinUser program.args[0]
-    else
-      program.help()
-      
-  createAccount: (username, email) ->
-    read { prompt: "Password: ", silent: true }, (err, password) =>
+    
+  getReadInput: (prompt, isSilent, callback) ->
+    read { prompt: prompt, silent: isSilent }, (err, result) ->
       throw err if !!err
       
-      if not username or not password or not email
-        return console.log "You need to specify username, password and email!"
+      callback? result
+  getSilentInput: (prompt, callback) ->
+    @getReadInput prompt, true, callback
+  getInput: (prompt, callback) ->
+    @getReadInput prompt, false, callback
+  
+  login: ->
+    @getInput "Username: ", (username) =>
+      @getSilentInput "Password: ", (password) =>
+        if not username or not password
+          return console.log "You need to specify username and password!"
     
-      @client.createNewUser username, password, email, (err, session) =>
-        @loginSuccessHandler err, session
+        console.log "Logging in with username \"#{username}\"..."
+        @client.login username, password, (err, session) =>
+          @loginSuccessHandler err, session
       
-  login: (username) ->
-    read { prompt: "Password: ", silent: true }, (err, password) =>
-      throw err if !!err
-      
-      if not username or not password
-        return console.log "You need to specify username and password!"
+  createAccount: ->
+    @getInput "Username: ", (username) =>
+      @getSilentInput "Password: ", (password) =>
+        @getInput "Email: ", (email) =>
+          if not username or not password or not email
+            return console.log "You need to specify username, password and email!"
     
-      console.log "Logging in with username \"#{username}\"..."
-      @client.login username, password, (err, session) =>
-        @loginSuccessHandler err, session
+          @client.createNewUser username, password, email, (err, session) =>
+            @loginSuccessHandler err, session
       
   loginSuccessHandler: (err, session) ->
     if !!err
