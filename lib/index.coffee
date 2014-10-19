@@ -29,6 +29,12 @@ class MoinCLI
           @login()
         )
     program
+      .command('logout')
+        .description('Logout and delete the session token.')
+        .action( =>
+          @logout()
+        )
+    program
       .command('signup')
         .description('Sign up for a new account and save the session token.')
         .action( =>
@@ -89,6 +95,16 @@ class MoinCLI
         console.log "Logging in with username \"#{username}\"..."
         @client.login username, password, (err, session) =>
           @loginSuccessHandler err, session
+          
+  logout: ->
+    if !!@config.get 'session'
+      read { prompt: "Do you really want to logout? ", default: 'Y' }, (err, answer) =>
+        throw err if !!err
+      
+        if answer.toUpperCase() == 'Y'
+          @setConfig 'session', undefined
+    else
+      console.log colors.warn 'You are not logged in.'
       
   createAccount: ->
     @getInput "Username: ", (username) =>
