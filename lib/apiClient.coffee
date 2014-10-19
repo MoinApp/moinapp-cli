@@ -36,7 +36,7 @@ class APIClient
     return path
   logRequest: (method, path, payload = null) ->
     # create a copy or else we are not going to pass those parameters to the server!
-    loggedPayload = {}
+    loggedPayload = if !!payload then {} else null
     `for ( var attr in payload ) {
       loggedPayload[attr] = payload[attr];
     }`
@@ -47,7 +47,9 @@ class APIClient
       if !!loggedPayload.application
         delete loggedPayload.application
       
-    console.log colors.info(method), colors.info(path), colors.info(JSON.stringify(loggedPayload))
+      console.log colors.info(method), colors.info(path), colors.info(JSON.stringify(loggedPayload))
+    else
+      console.log colors.info(method), colors.info(path)
   
   doGET: (path, callback) ->
     @logRequest "GET", path
