@@ -127,13 +127,13 @@ class MoinCLI
     @client.getUser username, (err, user) =>
       if !!err
         return @apiError err
-      console.log "[USER]", user
+      console.log colors.ok("[USER]"), user
       
   moinUser: (username) ->
     @client.moinUsername username, (err, data) =>
       if !!err
         return @apiError err
-      console.log "Moin sent.", data
+      console.log colors.ok("Moin sent."), data
       
   setConfig: (key, value) ->
     console.log 'Writing value "' + colors.info(value) + '" for config key "' + colors.info(key) + '".'

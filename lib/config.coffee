@@ -1,6 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 prettyjson = require 'prettyjson'
+colors = require './colors'
 
 class Configuration
   @filename = 'config.json'
@@ -54,7 +55,7 @@ class Configuration
     @save()
     
   print: ->
-    console.log "Configuration file located at #{@filename}."
+    console.log "Configuration file located at #{ colors.ok @filename }."
     console.log prettyjson.render @data
 
 module.exports.Configuration = Configuration
