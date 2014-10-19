@@ -32,7 +32,7 @@ $ moin login
 Logout:
 ```bash
 $ moin logout
-````
+```
 
 ## Get user info
 
