@@ -52,4 +52,4 @@ $ moin config-show
 
 ```bash
 $ moin config-set <key> <value>
-````
+```
