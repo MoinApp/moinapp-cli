@@ -3,6 +3,7 @@ program = require 'commander'
 read = require 'read'
 { APIClient } = require './apiClient'
 { Configuration } = require './config'
+colors = require './colors'
 
 class MoinCLI
   config: null
@@ -67,7 +68,7 @@ class MoinCLI
     formattedMessage = error
     if !!error.restCode && !!error.message
       formattedMessage = error.restCode + ": " + error.message
-    console.log "Error communicating with server.", formattedMessage
+    console.log colors.error("Error communicating with server."), colors.error(formattedMessage)
     
   getReadInput: (prompt, isSilent, callback) ->
     read { prompt: prompt, silent: isSilent }, (err, result) ->
@@ -104,7 +105,7 @@ class MoinCLI
       return @apiError err
     
     @config.set 'session', session
-    console.log "Logged in."
+    console.log colors.ok "Logged in."
     
   getUser: (username) ->
     @client.getUser username, (err, user) =>
@@ -119,7 +120,7 @@ class MoinCLI
       console.log "Moin sent.", data
       
   setConfig: (key, value) ->
-    console.log 'Writing value "' + value + '" for config key "' + key + '".'
+    console.log 'Writing value "' + colors.info(value) + '" for config key "' + colors.info(key) + '".'
     @config.set key, value
   showConfig: ->
     @config.print()

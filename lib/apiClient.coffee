@@ -1,6 +1,7 @@
 url = require 'url'
 restify = require 'restify'
 { Configuration } = require './config'
+colors = require './colors'
 
 class APIClient
   @apiPaths = {
@@ -46,7 +47,7 @@ class APIClient
       if !!loggedPayload.application
         delete loggedPayload.application
       
-    console.log method, path, loggedPayload
+    console.log colors.info(method), colors.info(path), colors.info(JSON.stringify(loggedPayload))
   
   doGET: (path, callback) ->
     @logRequest "GET", path

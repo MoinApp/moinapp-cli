@@ -17,6 +17,7 @@
   "author": "Sören Gade",
   "license": "MIT",
   "dependencies": {
+    "cli-color": "^0.3.2",
     "coffee-script": "^1.8.0",
     "commander": "^2.4.0",
     "prettyjson": "^1.0.0",
