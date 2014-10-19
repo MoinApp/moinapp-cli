@@ -39,7 +39,7 @@ $ moin logout
 *You need to login before you can use this method.*
 
 ```bash
-$ moin get <USERNAME>
+$ moin get <username>
 ```
 
 ## Show current configuration file
