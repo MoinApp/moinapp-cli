@@ -53,6 +53,12 @@ class MoinCLI
           @findUser username
         )
     program
+      .command('recents')
+        .description('List the recent users you moin\'ed.')
+        .action( =>
+          @getRecents()
+        )
+    program
       .command('config-show')
         .description('Shows the content of configuration file.')
         .action( =>
@@ -145,6 +151,17 @@ class MoinCLI
         users.push user.username
         
       console.log colors.info("Users starting with #{username}:"), colors.ok JSON.stringify users
+      
+  getRecents: ->
+    @client.getRecents (err, data) =>
+      if !!err
+        return @apiError err
+        
+      users = []
+      data.message.forEach (user) ->
+        users.push user.username
+        
+      console.log colors.info("Your recents:"), colors.ok JSON.stringify users
       
   moinUser: (username) ->
     @client.moinUsername username, (err, data) =>

@@ -9,6 +9,7 @@ class APIClient
     newUser: '/api/signup',
     getUser: '/api/user/:username',
     findUser: '/api/user?username=:username',
+    getRecents: '/api/user/recents',
     moin: '/api/moin'
   }
   
@@ -114,6 +115,9 @@ class APIClient
     path = APIClient.apiPaths.findUser.replace /:username/, username
     
     @doGET path, callback
+    
+  getRecents: (callback) ->
+    @doGET APIClient.apiPaths.getRecents, callback
       
   moinUsername: (username, callback) ->
     payload = {
