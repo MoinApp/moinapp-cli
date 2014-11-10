@@ -8,6 +8,7 @@ class APIClient
     login: '/api/auth',
     newUser: '/api/signup',
     getUser: '/api/user/:username',
+    findUser: '/api/user?username=:username',
     moin: '/api/moin'
   }
   
@@ -66,7 +67,6 @@ class APIClient
     @logRequest "POST", path, payload
     options = @authenticatePath path
     
-    console.log options
     @client.post options, payload, (err, req, res, obj) =>
       callback? err, obj
       @client.close()
@@ -109,6 +109,11 @@ class APIClient
     
     @doGET path, (err, response) ->
       callback? err, response.message
+      
+  findUser: (username, callback) ->
+    path = APIClient.apiPaths.findUser.replace /:username/, username
+    
+    @doGET path, callback
       
   moinUsername: (username, callback) ->
     payload = {

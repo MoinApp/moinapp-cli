@@ -47,6 +47,12 @@ class MoinCLI
           @getUser username
         )
     program
+      .command('find [username]')
+        .description('Returns a list of usernames beginning with the specified query term.')
+        .action( (username) =>
+          @findUser username
+        )
+    program
       .command('config-show')
         .description('Shows the content of configuration file.')
         .action( =>
@@ -128,6 +134,17 @@ class MoinCLI
       if !!err
         return @apiError err
       console.log colors.ok("[USER]"), user
+      
+  findUser: (username) ->
+    @client.findUser username, (err, data) =>
+      if !!err
+        return @apiError err
+        
+      users = []
+      data.message.forEach (user) ->
+        users.push user.username
+        
+      console.log colors.info("Users starting with #{username}:"), colors.ok JSON.stringify users
       
   moinUser: (username) ->
     @client.moinUsername username, (err, data) =>
