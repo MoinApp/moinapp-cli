@@ -10,7 +10,6 @@ class APIClient
     getUser: '/api/user/:username',
     moin: '/api/moin'
   }
-  @appID = "moinapp-cli"
   
   constructor: ->
     @config = Configuration.getConfiguration()
@@ -23,17 +22,21 @@ class APIClient
     }
     @client = restify.createJsonClient {
       url: uri,
-      version: "2.0.0",
+      version: "3.0.0",
       userAgent: 'moinapp-cli'
     }
     
   authenticatePath: (path) ->
+    retVal = {
+      path: path
+    }
+    
     if !!@session
-      urlObject = url.parse path, true, true
-      urlObject.query.session = @session
-      path = url.format urlObject
+      retVal.headers = {
+        'authorization': @session
+      }
       
-    return path
+    return retVal
   logRequest: (method, path, payload = null) ->
     # create a copy or else we are not going to pass those parameters to the server!
     loggedPayload = if !!payload then {} else null
@@ -53,17 +56,18 @@ class APIClient
   
   doGET: (path, callback) ->
     @logRequest "GET", path
-    path = @authenticatePath path
+    options = @authenticatePath path
     
-    @client.get path, (err, req, res, obj) =>
+    @client.get options, (err, req, res, obj) =>
       callback? err, obj
       @client.close()
 
   doPOST: (path, payload, callback) ->
     @logRequest "POST", path, payload
-    path = @authenticatePath path
+    options = @authenticatePath path
     
-    @client.post path, payload, (err, req, res, obj) =>
+    console.log options
+    @client.post options, payload, (err, req, res, obj) =>
       callback? err, obj
       @client.close()
       
@@ -76,8 +80,7 @@ class APIClient
   login: (username, password, callback) ->
     payload = {
       username: username,
-      password: password,
-      application: APIClient.appID
+      password: password
     }
     
     @doPOST APIClient.apiPaths.login, payload, (err, response) =>
@@ -91,8 +94,7 @@ class APIClient
     payload = {
       username: username,
       password: password,
-      email: email,
-      application: APIClient.appID
+      email: email
     }
     
     @doPOST APIClient.apiPaths.newUser, payload, (err, response) =>
