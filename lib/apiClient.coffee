@@ -74,8 +74,8 @@ class APIClient
       
   # Operation functions
   _parseLoginResponse: (response) ->
-    if response.code == "Success"
-      @session = response.message
+    if response?.token?
+      @session = response.token
       @config.set 'session', @session
   
   login: (username, password, callback) ->
@@ -109,7 +109,7 @@ class APIClient
     path = APIClient.apiPaths.getUser.replace /:username/, username
     
     @doGET path, (err, response) ->
-      callback? err, response.message
+      callback? err, response
       
   findUser: (username, callback) ->
     path = APIClient.apiPaths.findUser.replace /:username/, username

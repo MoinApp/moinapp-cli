@@ -147,7 +147,7 @@ class MoinCLI
         return @apiError err
         
       users = []
-      data.message.forEach (user) ->
+      data.forEach (user) ->
         users.push user.username
         
       console.log colors.info("Users starting with #{username}:"), colors.ok JSON.stringify users
@@ -158,7 +158,7 @@ class MoinCLI
         return @apiError err
         
       users = []
-      data.message.forEach (user) ->
+      data.forEach (user) ->
         users.push user.username
         
       console.log colors.info("Your recents:"), colors.ok JSON.stringify users
